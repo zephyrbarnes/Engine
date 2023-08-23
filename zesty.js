@@ -4,16 +4,11 @@ const pie = Math.PI,
       deg = tau / 360;
 
 class view {
-    constructor(rght,abve,frwd,bite){
+    constructor(xAxi,yAxi,zAxi,bite){
         this.matrix = [
-            [ rght.x, abve.x, frwd.x, bite.x],
-            [ rght.y, abve.y, frwd.y, bite.y],
-            [ rght.z, abve.z, frwd.z, bite.z],
-            [      0,      0,      0,      1]];
-        this.rotate = [
-            [ rght.x, rght.y, rght.z,      0],
-            [ abve.y, abve.y, abve.y,      0],
-            [ frwd.x, frwd.y, frwd.z,      0],
+            [ xAxi.x, yAxi.x, zAxi.x, bite.x],
+            [ xAxi.y, yAxi.y, zAxi.y, bite.y],
+            [ xAxi.z, yAxi.z, zAxi.z, bite.z],
             [      0,      0,      0,      1]];
         this.translate = [
             [      1,      0,      0,-bite.x],
@@ -24,7 +19,7 @@ class view {
     projection(fov,far,near){
         let s = 1 / Math.tan(fov*deg/2)
         let c1 = -(far + near) / (far - near), c2 = -(2*far * near) / (far - near);
-        this.project = [[s, 0, 0, 0],[0, s, 0, 0],[0, 0,c1,c2],[0, 0,-1, 0]];
+        this.proj = [[s, 0, 0, 0],[0, s, 0, 0],[0, 0,c1,c2],[0, 0,-1, 0]];
     }
 }
 
@@ -54,38 +49,41 @@ class cube { constructor(size,anch,color) { this.size = size; this.color = color
     }
 }
 
-function rend(item) {
-    for (let face of item.faces) {
-        var fake = project(face.bits[3]);
-        ctx.beginPath(); ctx.moveTo(fake.x, fake.y);
-        for (let bite of face.bits) { fake = project(bite); ctx.lineTo(fake.x, fake.y); }
-        ctx.closePath(); ctx.stroke(); ctx.fill();
-    }
+class vt2D { constructor(x, y) { this.x = parseFloat(x); this.y = parseFloat(y); } }
+
+function cos(θ) { Math.cos(θ); } function sin(θ) { Math.sin(θ); }
+
+function rote(mtrx,axis,tang) { let result, θ = tang*deg;
+    if(axis = 'x') { result = [
+        [ 1,      0, 0, 0],
+        [ 0, cos(θ),-sin(θ), 0],
+        [ 0, sin(θ), cos(θ), 0],
+        [ 0,      0,      0, 1]];
+    }else if(axis == 'y') { result = [
+        [ cos(θ), 0, sin(θ), 0],
+        [      0, 1,      0, 0],
+        [-sin(θ), 0, cos(θ), 0],
+        [      0, 0,      0, 1]];
+    }else{ result = [
+        [ cos(θ),-sin(θ), 0, 0],
+        [ sin(θ), cos(θ), 0, 0],
+        [      0,      0, 0, 0],
+        [      0,      0, 0, 1]];
+    } return mult(mtrx,result);
 }
 
-var vert = function(x, y) { this.x = parseFloat(x); this.y = parseFloat(y); };
-
-function project(fill) {
-    let take = fill;
-    take = mult(mult(cmr.project,cmr.matrix),fill.data);
-	return new vert(take[0],take[1]);
+function mult(a,b) {
+    let i, j, k, result = [];
+        aR = a.length, aC = a[0].length,
+        bR = b.length, bC = b[0].length;
+    for(i;i < aR; i++) { result.push([]);
+        for (j; j < 4; j++) {
+            for (k; k < 4; k++) {              
+                result[i][j].push(a[i][k]*b[k][j]);
+            }      
+        }  
+    } return result;
 }
-
-function mult(a, b) {
-    var aNumRows = a.length, aNumCols = a[0].length,
-        bNumRows = b.length, bNumCols = b[0].length,
-        m = new Array(aNumRows);  // initialize array of rows
-    for (var r = 0; r < aNumRows; ++r) {
-      m[r] = new Array(bNumCols); // initialize the current row
-      for (var c = 0; c < bNumCols; ++c) {
-        m[r][c] = 0;             // initialize the current cell
-        for (var i = 0; i < aNumCols; ++i) {
-          m[r][c] += a[r][i] * b[i][c];
-        }
-      }
-    }
-    return m;
-  }
 
 function start(CID) {
     cnv = document.getElementById(CID); ctx = cnv.getContext('2d');
