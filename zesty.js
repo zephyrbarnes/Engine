@@ -51,24 +51,24 @@ class cube { constructor(size,anch,color) { this.size = size; this.color = color
 
 class vt2D { constructor(x, y) { this.x = parseFloat(x); this.y = parseFloat(y); } }
 
-function cos(θ) { Math.cos(θ); } function sin(θ) { Math.sin(θ); }
+function cos(thet) { Math.cos(thet); } function sin(thet) { Math.sin(thet); }
 
-function rote(mtrx,axis,tang) { let result, θ = tang*deg;
+function rote(mtrx,axis,tang) { let result, thet = tang*deg;
     if(axis = 'x') { result = [
-        [ 1,      0, 0, 0],
-        [ 0, cos(θ),-sin(θ), 0],
-        [ 0, sin(θ), cos(θ), 0],
+        [ 1,         0,         0, 0],
+        [ 0, cos(thet),-sin(thet), 0],
+        [ 0, sin(thet), cos(thet), 0],
         [ 0,      0,      0, 1]];
     }else if(axis == 'y') { result = [
-        [ cos(θ), 0, sin(θ), 0],
-        [      0, 1,      0, 0],
-        [-sin(θ), 0, cos(θ), 0],
-        [      0, 0,      0, 1]];
+        [ cos(thet), 0, sin(thet), 0],
+        [         0, 1,         0, 0],
+        [-sin(thet), 0, cos(thet), 0],
+        [         0, 0,         0, 1]];
     }else{ result = [
-        [ cos(θ),-sin(θ), 0, 0],
-        [ sin(θ), cos(θ), 0, 0],
-        [      0,      0, 0, 0],
-        [      0,      0, 0, 1]];
+        [ cos(thet),-sin(thet), 0, 0],
+        [ sin(thet), cos(thet), 0, 0],
+        [         0,         0, 0, 0],
+        [         0,         0, 0, 1]];
     } return mult(mtrx,result);
 }
 
