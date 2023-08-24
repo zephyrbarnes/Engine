@@ -1,4 +1,5 @@
 let ctx, cnv, cmr, myCube;
+var cos = Math.cos, sin = Math.sin;
 const pie = Math.PI,
       tau = 2 * pie,
       deg = tau / 360;
@@ -49,8 +50,6 @@ class cube { constructor(size,anch,color) { this.size = size; this.anch = anch; 
             new face(this.bites[7], this.bites[0], this.bites[1], this.bites[6], this.color)];
     }
 }
-
-var cos = Math.cos, sin = Math.sin;
 
 function rote(mtrx,axis,tang) { let result, thet = tang*deg;
     if(axis == 'x') { result = [
