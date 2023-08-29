@@ -6,10 +6,19 @@ class Cube { constructor(C=new V(),S=0, R=new V()) { this.S = S; /*Scale*/ this.
     new V(-1,-1,-1), new V(-1, 1,-1), new V( 1, 1,-1), new V( 1,-1,-1),new V( 1,-1, 1), new V( 1, 1, 1), new V(-1, 1, 1), new V(-1,-1, 1)]; this.F =[ /*Face array*/
         new T(this.B[0], this.B[1], this.B[2], this.B[3]), /*Front*/ new T(this.B[1], this.B[6], this.B[5], this.B[2]), /*Right*/
         new T(this.B[3], this.B[2], this.B[5], this.B[4]), /*Above*/ new T(this.B[4], this.B[5], this.B[6], this.B[7]), /*Backs*/
-        new T(this.B[7], this.B[0], this.B[3], this.B[4]), /*Below*/ new T(this.B[7], this.B[6], this.B[1], this.B[0])];/*Lefts*/
+        new T(this.B[7], this.B[0], this.B[3], this.B[4]), /*Below*/ new T(this.B[7], this.B[6], this.B[1], this.B[0])];/*Lefts*/ objs.push(this);
 }}
 
+class Mesh { constructor(path, C=new V(),S=0, R=new V()) { this.S = S; this.R = R; this.C = C; this.B = []; this.F = []; this.path = path; populate(); }
+
+}
+
 class View { constructor(C=new V(),R=new V()) { this.C = C; this.R = R; }} /*Camera/View class*/
+
+async function loadTextFile(fl) {
+    try { const rt = await fetch(fl); if(!rt.ok) { throw new Error(`Fail_${fl}`); } const txt = await rt.text(); return txt;}
+    catch(er) { console.error(er); return null; }
+}
 
 function pF(n) { return parseFloat(n.toFixed(4)); } /*Restrict the precision of a value,
 Considering having the precision alterable depending on camera rotation speed,
@@ -66,20 +75,18 @@ function drawPoly(obj,face) {
     }
 }
 
-async function loadTextFile(filename) {
-    try {
-        const rtrn = await fetch(filename);
-        if(!rtrn.ok) { throw new Error(`fetchFail of ${filename}`); }
-        const txt = await rtrn.text(); return txt;
-    }catch(error) { console.error(error); return null; }
+function renders(objs) {
+    for(let o of objs) { drawObj(o); }
 }
-//loadTextFile(filename).then( txt => { if (txt !== null) { } });
+
+loadTextFile("reduced.obj").then( txt => { if (txt !== null) { } });
 
 function drawObj(item) { for (let i = 0; i < item.F.length; i++) { drawPoly(item, item.F[i]); } }
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), cvw = cv.width = window.innerWidth, cvh = cv.height = window.innerHeight;
 const c=Math.cos, s=Math.sin, tan=Math.tan, abs=Math.abs, rt=Math.sqrt, pi=Math.PI, dg=pi/180, fs = false, tr = true;
 var nie=0.01, far=1, fov=70, dbug = fs; calcVew();
+var objs = [];
 var cam = new View();
 var demo = new Cube(new V(0,0,25));
 var cub1 = new Cube(new V(-4,0,25));
@@ -95,11 +102,7 @@ function tick() {
     cub2.R.y++; cub2.R.x++;
     cub3.R.y--; cub3.R.x--;
     cub4.R.y--; cub4.R.x--;
-    drawObj(cub3);
-    drawObj(cub4);
-    drawObj(cub1);
-    drawObj(cub2);
-    drawObj(demo);
+    renders(objs);
 }
 var tid = setInterval(tick, 30);
 window.addEventListener('beforeunload', function(e) { clearInterval(tid); });
