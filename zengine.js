@@ -55,9 +55,9 @@ function rotates(v,r) { const [x,y,z] = [r.x*dg, r.y*dg, r.z*dg], [cx,cy,cz,sx,s
     /*Demo const*/const rZ = (vysx * cy) + (-v.x*sy) + (vzcx * cy); /*Rotation of the Z axi*/
     return new V(rX, rY, rZ); }
 
-function translt(v, c) { const x = v.x + c.x, y = v.y + c.y, z = v.z + c.z; return new V(x,y,z); }
+function translt(v, c) { const x = pF(v.x + c.x), y = pF(v.y + c.y), z = pF(v.z + c.z), w = pF(v.w + c.w); return new V(x,y,z,w); }
 
-function project(v) { let w = -nie*v.z*zed; return new V(v.x*fov*(cvh/far)/w,v.y*fov*(cvw/far)/w,(v.z*zed+v.w)/w,w); }
+function project(v) { let w = -nie*v.z*zed; return new V(pF(v.x*fov*(cvh/far)/w),pF(v.y*fov*(cvw/far)/w),pF((v.z*zed+v.w)/w,w)); }
 
 function line(t) { ctx.beginPath(); ctx.moveTo(t.V.a.x+cvw/2,t.V.a.y+cvh/2); ctx.lineTo(t.V.b.x+cvw/2,t.V.b.y+cvh/2);
     ctx.lineTo(t.V.c.x+cvw/2,t.V.c.y+cvh/2); ctx.lineTo(t.V.a.x+cvw/2,t.V.a.y+cvh/2); ctx.closePath(); }
@@ -74,19 +74,26 @@ function drawPoly(v,face) {
     let cm = translt(f[0], new V(-cam.C.x,-cam.C.y,-cam.C.z));
     let nl = fNormal(f), nf = dotProd(nl,cm);
     if (nf < 0) {
-        let gi = dotProd(nl, lit), rgba = `rgba(0, ${parseFloat((gi*150).toFixed(0))}, ${parseFloat((gi*255).toFixed(0))}, 1)`;
-        for(let i=0; i < f.length; i++) { f[i] = project(f[i]);
-            f[i].x = pF(f[i].x); f[i].y = pF(f[i].y); }
-        line(f);
-        ctx.fillStyle = rgba;
-        if (dbug) { ctx.stroke(); }
-        ctx.fill();
+        let gi = dotProd(nl, lit); f.rgba = `rgba(0, ${parseFloat((gi*150).toFixed(0))}, ${parseFloat((gi*255).toFixed(0))}, 1)`;
+        var depth = 0; for(let v of f) { depth+=abs(v.z); } depth/=f.length; f.depth = parseFloat(depth.toFixed(4));
+        for(let i=0; i < f.length; i++) { f[i] = project(f[i]); }
+        toDraw.push(f);
     }
 }
 
-function renders(objs) { for(let o of objs) { drawObj(o); }}
+function drawObj(item) { var vs = trnsform(item);
+    for (let i = 0; i < item.F.length; i++) { drawPoly(vs, item.F[i]); }
+    toDraw.sort((a, b) => b.depth - a.depth);
+    for(let face of toDraw) { line(face);
+        ctx.strokeStyle = face.rgba;
+        ctx.fillStyle = face.rgba;
+        ctx.stroke(); ctx.fill();
+    } toDraw = [];
+}
 
-function drawObj(item) { var vs = trnsform(item); for (let i = 0; i < item.F.length; i++) { drawPoly(vs, item.F[i]); }}
+function drawSort(array){
+
+}
 
 function trnsform(obj) {
     const b = []; for (let v of obj.B) { b.push({x:v.x,y:v.y,z:v.z,w:v.w}); }
@@ -94,20 +101,21 @@ function trnsform(obj) {
     return b;
 }
 
+function renders(objs) { for(let o of objs) { drawObj(o); }}
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), cvw = cv.width = window.innerWidth, cvh = cv.height = window.innerHeight;
 const c=Math.cos, s=Math.sin, tan=Math.tan, abs=Math.abs, rt=Math.sqrt, pi=Math.PI, dg=pi/180, fs = false, tr = true;
 var nie=0.01, far=22, fov=70, dbug = fs; calcVew();
-var objs = [];
+var objs = [], toDraw = [];
 var cam = new View();
 //var demo = new Cube(new V(0,0,25)); 
-var body = new Mesh("reduced.obj", new V(0,0,5));
+var body = new Mesh("reduced.obj", new V(0,0,6));
 var lit = new V(1,1,-1); subFunc(lit);
 
 function tick() {
     ctx.clearRect(0, 0, cvw, cvh);
     //demo.R.x++; demo.R.y++;
-    body.R.y++;
+    body.R.x++;body.R.y++;
     renders(objs);
 }
 var tid = setInterval(tick, 30);
