@@ -20,11 +20,12 @@ function dotProd(v,b) { return v.x*b.x + v.y*b.y + v.z*b.z; } /*Its the dot prod
 function calcVew() { fov = 1/tan(fov*dg); zed = far/(far-nie); ratio = cvh/cvw; } /*Used for initial calculation of view parameters and if actively altered*/
 
 function fNormal(f) { const [a,b,c] = [f[0],f[1],f[2]], [v1,v2,v3,v4,v5,v6] = [b.y-a.y, c.z-b.z, b.z-a.z, c.y-b.y, c.x-b.x, b.x-a.x];
-    return normals(new V(v1*v2-v3*v4,v3*v5-v6*v2,v6*v4-v1*v5)); }
+    return normals(new V(v1*v2-v3*v4,v3*v5-v6*v2,v6*v4-v1*v5)); } /*Generates the normalization vectors of a face based on order of its points*/
 
-function normals(v) { const n = rt(dotProd(v,v)); return subFunc(v,n); }
+function normals(v) { const n = rt(dotProd(v,v)); return subFunc(v,n); } /*Utility used in faceNormal*/
 
-function subFunc(v,n) { if(n < 1e-2) {return new V(); }else{ const x = pF(v.x/n), y = pF(v.y/n), z = pF(v.z/n); return new V(x,y,z); }}
+function subFunc(v,n) { if(n < 1e-2) {return new V(); }else{ const x = pF(v.x/n), y = pF(v.y/n), z = pF(v.z/n); return new V(x,y,z); }} /*Utility used in faceNormal,
+I believe both normals and subFunc are not actually used in anything else currently, I was trying to parse multi use to reduce code, but no luck.*/
 
 function scaling(v,g) { if(g.type != V) { if(g == 0) { g = 1; } return new V(v.x*g, v.y*g, v.z*g); }else{ return new V(v.x*g.x, v.y*g.y, v.z*g.z); }}
 
