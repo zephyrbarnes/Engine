@@ -1,16 +1,25 @@
 class V { constructor(x=0,y=0,z=0,w=1) { this.x = x; this.y = y; this.z = z; this.w = w; }}
 
-class T { constructor(a,b,c,d) { this.color = 'rgba(0, 150, 255, 0.3)'; this.V = d ? [a,b,c,d] : [a,b,c]; }}
+class T { constructor(a, b, c, d) { this.V = d ? [a, b, c, d] : [a, b, c]; this.color = 'rgba(0, 150, 255, 0.3)'; }
+    *[Symbol.iterator]() { for (let v of this.V) { yield v; }}}
 
 class Cube { constructor(C=new V(),S=0, R=new V()) { this.S = S; /*Scale*/ this.R = R; /*Rotation*/ this.C = C; /*Coord*/ this.B = [ /*Array of all 8 cube vertices*/
     new V(-1,-1,-1), new V(-1, 1,-1), new V( 1, 1,-1), new V( 1,-1,-1),new V( 1,-1, 1), new V( 1, 1, 1), new V(-1, 1, 1), new V(-1,-1, 1)]; this.F =[ /*Face array*/
-        new T(this.B[0], this.B[1], this.B[2], this.B[3]), /*Front*/ new T(this.B[1], this.B[6], this.B[5], this.B[2]), /*Right*/
-        new T(this.B[3], this.B[2], this.B[5], this.B[4]), /*Above*/ new T(this.B[4], this.B[5], this.B[6], this.B[7]), /*Backs*/
-        new T(this.B[7], this.B[0], this.B[3], this.B[4]), /*Below*/ new T(this.B[7], this.B[6], this.B[1], this.B[0])];/*Lefts*/ objs.push(this);
+        new T(0, 1, 2, 3), /*Front*/ new T(1, 6, 5, 2), /*Right*/ new T(3, 2, 5, 4),/*Above*/
+        new T(4, 5, 6, 7), /*Backs*/ new T(7, 0, 3, 4), /*Below*/ new T(7, 6, 1, 0)];/*Lefts*/ objs.push(this);
 }}
 
-class Mesh { constructor(path, C=new V(),S=0, R=new V()) { this.S = S; this.R = R; this.C = C; this.B = []; this.F = []; this.path = path; populate(); }
-
+class Mesh { constructor(path, C=new V(),S=0, R=new V()) { this.S = S; this.R = R; this.C = C;
+    this.B = []; this.F = []; this.path = path; this.populate(); objs.push(this); }
+    populate() { loadTextFile(this.path).then( txt => { if (txt !== null) {
+        var vNum = []; const lines = txt.split("\n");
+        for(let line of lines) { let yarn = line.split(" ");
+            if(yarn[0] == "v") { this.B.push(new V(parseFloat(yarn[1]),parseFloat(yarn[2]),parseFloat(yarn[3]))); }
+            else if(yarn[0] == "f") { for(let i=1; i < yarn.length; i++) { vNum.push(parseFloat(yarn[i])); }
+                this.F.push(new T(...vNum));
+            }
+        }
+    }});}
 }
 
 class View { constructor(C=new V(),R=new V()) { this.C = C; this.R = R; }} /*Camera/View class*/
@@ -52,56 +61,51 @@ function project(v) { let w = -nie*v.z*zed; return new V(v.x*fov*ratio/w,v.y*fov
 function line(t) { ctx.beginPath(); ctx.moveTo(t.V.a.x+cvw/2,t.V.a.y+cvh/2); ctx.lineTo(t.V.b.x+cvw/2,t.V.b.y+cvh/2);
     ctx.lineTo(t.V.c.x+cvw/2,t.V.c.y+cvh/2); ctx.lineTo(t.V.a.x+cvw/2,t.V.a.y+cvh/2); ctx.closePath(); }
 
-function line(f) {
+function line(vecs,f) {
     ctx.beginPath();
-    ctx.moveTo(f[0].x + + cvw/2, f[0].y + + cvh/2);
-    for (let i = 1; i < f.length; i++) { ctx.lineTo(f[i].x + cvw/2, f[i].y + cvh/2); }
-    ctx.lineTo(f[0].x + + cvw/2, f[0].y + + cvh/2); ctx.closePath();
+    ctx.moveTo(vecs[f[0]].x + + cvw/2, vecs[f[0]].y + + cvh/2);
+    for (let i = 1; i < f.length; i++) { ctx.lineTo(vecs[f[i]].x + cvw/2, vecs[f[i]].y + cvh/2); }
+    ctx.lineTo(vecs[f[0]].x + + cvw/2, vecs[f[0]].y + + cvh/2); ctx.closePath();
 }
 
-function drawPoly(obj,face) {
-    const f = []; for (let v of face.V) { f.push({ x:v.x, y:v.y, z:v.z, w:v.w }); }
-    for(let i=0; i < f.length; i++) { f[i] = translt(rotates(scaling(f[i],obj.S),obj.R),obj.C); }
-    let cm = translt(f[0], new V(-cam.C.x,-cam.C.y,-cam.C.z)); 
+function drawPoly(vecs,face) {
+    const f = []; for (let n of face) { f.push(n); }
+    let cm = translt(vecs[f[0]], new V(-cam.C.x,-cam.C.y,-cam.C.z)); 
     let nl = fNormal(f), nf = dotProd(nl,cm);
     if (nf < 0) {
         let gi = dotProd(nl, lit), rgba = `rgba(0, ${gi * 150}, ${gi * 255}, 1)`;
-        for(let i=0; i < f.length; i++) { f[i] = project(f[i]);
-            f[i].x *= cvw / 22; f[i].y *= cvh / 22; f[i].x = pF(f[i].x); f[i].y = pF(f[i].y); }
-        line(f);
+        for(let i=0; i < f.length; i++) { vecs[f[i]] = project(vecs[f[i]]);
+            vecs[f[i]].x *= cvw / 22; vecs[f[i]].y *= cvh / 22; f[i].x = pF(vecs[f[i]].x); f[i].y = pF(vecs[f[i]].y); }
+        line(vecs,f);
         ctx.fillStyle = rgba;
         if (dbug) { ctx.stroke(); }
         ctx.fill();
     }
 }
 
+function vecTrans(obj) {
+    const b = []; for (let v of obj.B) { b.push({ x: v.x, y: v.y, z: v.z, w: v.w }); }
+    for(let i=0; i < b.length; i++) { b[i] = translt(rotates(scaling(b[i],obj.S),obj.R),obj.C); }
+    return b;
+}
+
 function renders(objs) {
     for(let o of objs) { drawObj(o); }
 }
 
-loadTextFile("reduced.obj").then( txt => { if (txt !== null) { } });
-
-function drawObj(item) { for (let i = 0; i < item.F.length; i++) { drawPoly(item, item.F[i]); } }
+function drawObj(item) { var vecs = vecTrans(item); for (let i = 0; i < item.F.length; i++) { drawPoly(vecs, item.F[i]); } }
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), cvw = cv.width = window.innerWidth, cvh = cv.height = window.innerHeight;
 const c=Math.cos, s=Math.sin, tan=Math.tan, abs=Math.abs, rt=Math.sqrt, pi=Math.PI, dg=pi/180, fs = false, tr = true;
 var nie=0.01, far=1, fov=70, dbug = fs; calcVew();
 var objs = [];
 var cam = new View();
-var demo = new Cube(new V(0,0,25));
-var cub1 = new Cube(new V(-4,0,25));
-var cub2 = new Cube(new V(-8,0,25));
-var cub3 = new Cube(new V(4,0,25));
-var cub4 = new Cube(new V(8,0,25));
+var demo = new Cube(new V(0,0,25)); 
+var body = new Mesh("reduced.obj", new V(0,0,-30));
 var lit = new V(1,1,-1); subFunc(lit);
 
 function tick() {
     ctx.clearRect(0, 0, cvw, cvh);
-    demo.R.x++;
-    cub1.R.y++; cub1.R.x++;
-    cub2.R.y++; cub2.R.x++;
-    cub3.R.y--; cub3.R.x--;
-    cub4.R.y--; cub4.R.x--;
     renders(objs);
 }
 var tid = setInterval(tick, 30);
