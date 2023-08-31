@@ -1,11 +1,11 @@
-const f = false;
+const fs = false, tr = true;
 class keyHandler {
   keyState = {
-                     87: f, /*W KEY*/
-    65: f, /*A KEY*/ 83: f, /*S KEY*/ 68: f, /*D KEY*/
-    32: f, /*SPACE*/					38: f, /*ABOVE*/
-    37: f, /*LEFTS*/ 40: f, /*BELOW*/ 39: f, /*RIGHT*/
-    13: f  /*ENTER*/
+                      87: fs, /*W KEY*/
+    65: fs, /*A KEY*/ 83: fs, /*S KEY*/ 68: fs, /*D KEY*/
+    32: fs, /*SPACE*/					38: fs, /*ABOVE*/
+    37: fs, /*LEFTS*/ 40: fs, /*BELOW*/ 39: fs, /*RIGHT*/
+    13: fs  /*ENTER*/
   };
   pass(e, isPressed) { if (e.which in this.keyState) { this.keyState[e.which] = isPressed; e.preventDefault(); } }
   key(keyCode) { return this.keyState[keyCode]; }
@@ -14,28 +14,26 @@ class keyHandler {
 document.addEventListener('keydown', (e) => keyH.pass(e, true));
 document.addEventListener('keyup', (e) => keyH.pass(e, false));
 
-//var keyH = new keyHandler(), key = keyH.keyState;
-cnv.addEventListener("mousemove", function(e) {
+var keyH = new keyHandler(), key = keyH.keyState;
+cv.addEventListener("mousemove", function(e) {
   var deltaX = e.clientX - prevMouseX;
   var deltaY = e.clientY - prevMouseY;
-  prevMouseX = e.pageX;
-  prevMouseY = e.pageY;
-  cam.r.y += deltaX * rotateSpeed;
-  cam.r.x += deltaY * rotateSpeed;
+  //camera.R.y += deltaX * rotateSpeed;
+  //camera.R.x += deltaY * rotateSpeed;
 
-  cam.r.x = Math.max(Math.min(cam.r.x, 90), -90);
+  //camera.R.x = Math.max(Math.min(camera.R.x, 90), -90);
 });
-var moveSpeed = 0.1, rotateSpeed = 0.5;
+var moveSpeed = 2, rotateSpeed = 0.5;
 var prevMouseX = 0, prevMouseY = 0;
 
 
 function keysCheck() {
-  if (!key[87] && key[83] || key[87] && !key[83]) {
-    if (key[87]) cam.c.z += moveSpeed;
-    if (key[83]) cam.c.z -= moveSpeed;
+  if (!key[87] && key[83] || key[87] && !key[83]) {a
+    if (key[87]) camera.T = addVector(camera.T, camera.S);
+    if (key[83]) camera.T = subVector(camera.T, camera.S);
   }
   if (!key[65] && key[68] || key[65] && !key[68]) {
-    if (key[65]) cam.c.x -= moveSpeed;
-    if (key[68]) cam.c.x += moveSpeed;
+    if (key[65]) camera.R.y -= 0.01;
+    if (key[68]) camera.R.y += 0.01;
   }
 }
