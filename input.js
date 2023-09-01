@@ -33,7 +33,7 @@ function keysCheck() {
     if (key[83]) camera.T = subVector(camera.T, camera.S);
   }
   if (!key[65] && key[68] || key[65] && !key[68]) {
-    if (key[65]) camera.R.y -= 0.01;
-    if (key[68]) camera.R.y += 0.01;
+    if (key[65]) camera.R.y -= 0.001;
+    if (key[68]) camera.R.y += 0.001;
   }
 }

@@ -9,9 +9,8 @@ class Cube { constructor(T=new V,S=0, R=new V) { this.S = S; /*Scale*/ this.R = 
         new T(4, 5, 6, 7), /*Backs*/ new T(7, 0, 3, 4), /*Below*/ new T(0, 7, 6, 1)];/*Lefts*/
 }}
 
-class Mesh { constructor(path, T=new V,S=1, R=new V) { this.S = S; this.R = R; this.T = T;
-    this.B = []; this.F = []; this.path = path; this.populate(); }
-    populate() { loadTextFile(this.path).then( txt => { if (txt !== null) {
+class Mesh { constructor(path) { Object.assign(this, {path, B:[], F:[]});this.read(this.path); }
+    read(path) { loadTextFile(path).then( txt => { if (txt !== null) {
         var vNum = []; const lines = txt.split("\n");
         for(let vecLine of lines) { let yarn = vecLine.split(" ");
             if(yarn[0] == "v") { this.B.push(new V(parseFloat(yarn[1]),parseFloat(yarn[2]),parseFloat(yarn[3]))); }
@@ -60,7 +59,7 @@ function dotProduct(v,b) { return v.x*b.x + v.y*b.y + v.z*b.z; }
 function pF(n) { return parseFloat(n.toFixed(4)); }
 
 
-var projectMatrix = function() { let r = ch/cw, z = f/(f-n), w = -n*z, fdg = (1/tan(fov*dg))/w;
+var projectMatrix = function() { let r = ch/cw, z = f/(f-n), w = -n*z, fdg = (1/tan(fov*dg/180*pi))/w;
     return [[fdg*r*cw/100,0,0,0],[0,fdg*ch/100,0,0],[0,0,z,1],[0,0,w,1]];
 }
 
@@ -140,7 +139,7 @@ function render(objs) { for(let o of objs) { drawObjs(o); }}
 
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), cw = cv.width = window.innerWidth, ch = cv.height = window.innerHeight;
 const c=Math.cos, s=Math.sin, tan=Math.tan, abs=Math.abs, rt=Math.sqrt, pi=Math.PI, dg=pi/180;
-var n=0.01, f=10, fov=70, dbug = fs;
+var n=0.01, f=1000, fov=70, dbug = fs;
 var toDraw = [];
 var world = new Worlds();
 var camera = new Camera(1, new V(0,0,0,0),new V(0,0,0,0));
