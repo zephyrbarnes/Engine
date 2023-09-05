@@ -13,7 +13,7 @@ div {
 
 canvas {
     width: 100%;
-    background:white;
+    background:black;
     object-fit: contain;
     image-rendering: pixelated;
     display: block;
